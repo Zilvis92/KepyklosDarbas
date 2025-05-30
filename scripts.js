@@ -1,22 +1,26 @@
 let calculateButton = document.getElementById('calculate')
 calculateButton.addEventListener('click', function () {
     console.log('clicked')
-    let employeeCount = document.getElementById('employee-count').valueAsNumber
+    let employeeCount     = document.getElementById('employee-count').valueAsNumber
     let loavesPerEmployee = document.getElementById('loaves-per-employee').valueAsNumber
-    let orderCount = document.getElementById('order-count').valueAsNumber
-    let workHours = document.getElementById('work-hours').valueAsNumber
-    let loadTime = document.getElementById('load-time').valueAsNumber
+    let orderCount        = document.getElementById('order-count').valueAsNumber
+    let workHours         = document.getElementById('work-hours').valueAsNumber
+    let loadTime          = document.getElementById('load-time').valueAsNumber
 
     let kepyklaTotal = employeeCount * loavesPerEmployee
-    let arPavyks = kepyklaTotal >= orderCount
-    let maxPossible = Math.floor((workHours * 60) / loadTime) * employeeCount
+    let maxPossible  = Math.floor((workHours * 60) / loadTime) * employeeCount
+    let efficiency = maxPossible > 0 ? Math.min(100, (orderCount / kepyklaTotal * 100)).toFixed(1) : 0;
+    let arPavyks     = kepyklaTotal >= orderCount
+    
 
     let results = document.getElementById('results')
-    results.innerHTML = `<p><strong>Kepykla per dieną spės pagaminti:</strong> ${kepyklaTotal} kepalus</p>`
-    results.innerHTML += `<p><strong>Reikia pagaminti:</strong> ${orderCount} kepalus</p>`
-    results.innerHTML += `<p><strong>Maksimali gamybos galia:</strong> ${maxPossible} kepalai</p>`
-    results.innerHTML += `<p><strong>Gamybos efektyvumas:</strong> ${((kepyklaTotal / maxPossible) * 100).toFixed(1)}%</p`
-    results.innerHTML += `<p><strong>Ar spės pagaminti?</strong> ${arPavyks ? 'Taip' : 'Ne'}</p>`
+    results.innerHTML = `
+        <p><strong>Kepykla per dieną spės pagaminti:</strong> ${kepyklaTotal} kepalus</p>
+        <p><strong>Reikia pagaminti:</strong> ${orderCount} kepalų</p>
+        <p><strong>Maksimali gamybos galia:</strong> ${maxPossible} kepalų</p>
+        <p><strong>Gamybos efektyvumas:</strong> ${efficiency}%</p>
+        <p><strong>Ar spės pagaminti?</strong> ${arPavyks ? 'Taip' : 'Ne'}</p>
+    `;
 })
 
 // document.getElementById('employee-count').addEventListener('keyup', function(event) {
@@ -42,13 +46,17 @@ document.getElementById('reset').addEventListener('click', function () {
     document.getElementById('employee-count').classList.remove('error')
     document.getElementById('loaves-per-employee').classList.remove('error')
     document.getElementById('order-count').classList.remove('error')
+    document.getElementById('work-hours').classList.remove('error')
+    document.getElementById('load-time').classList.remove('error')
 
     // Paslėpia klaidos pranešimus
     document.getElementById('employee-count').nextElementSibling.classList.remove('show')
     document.getElementById('loaves-per-employee').nextElementSibling.classList.remove('show')
     document.getElementById('order-count').nextElementSibling.classList.remove('show')
+    document.getElementById('work-hours').nextElementSibling.classList.remove('show')
+    document.getElementById('load-time').nextElementSibling.classList.remove('show')
 
-    disabledCalculateButton.disabled = false;
+    calculateButton.disabled = false;
 })
 
 /* INSTRUKCIJOS:
@@ -60,35 +68,39 @@ Papildykite projektą:
 */
 
 function validateInput(event) {
-    let inputValue = event.target.valueAsNumber
-    if (inputValue < 0) {
-        event.target.classList.add('error', 'shake')
-        event.target.nextElementSibling.classList.add('show')
-
+    let inputValue = event.target.valueAsNumber;
+    if(inputValue < 0 || (event.target.id === 'load-time' && inputValue <= 0)) {
+        event.target.classList.add('error', 'shake');
+        event.target.nextElementSibling?.classList.add('show');
+        
         setTimeout(() => {
-            event.target.classList.remove('shake')
-        }, 500)
+            event.target.classList.remove('shake');
+        }, 500);
     } else {
-        event.target.classList.remove('error',)
-        event.target.nextElementSibling.classList.remove('show')
+        event.target.classList.remove('error', 'shake');
+        event.target.nextElementSibling?.classList.remove('show');
     }
+    checkAllInputs();
 }
-// Prideda validaciją kiekvienam įvesties laukeliui
-document.getElementById('employee-count').addEventListener('keyup', validateInput)
-document.getElementById('loaves-per-employee').addEventListener('keyup', validateInput)
-document.getElementById('order-count').addEventListener('keyup', validateInput)
 
-// Uždraudžia mygtuką, jei įvesties laukai yra netinkami
-let disabledCalculateButton = document.getElementById('calculate');
-disabledCalculateButton.addEventListener('mouseenter', function () {
-    let employeeCount = document.getElementById('employee-count').valueAsNumber
-    let loavesPerEmployee = document.getElementById('loaves-per-employee').valueAsNumber
-    let orderCount = document.getElementById('order-count').valueAsNumber
+function checkAllInputs() {
+    let employeeCount = document.getElementById('employee-count').valueAsNumber;
+    let loavesPerEmployee = document.getElementById('loaves-per-employee').valueAsNumber;
+    let orderCount = document.getElementById('order-count').valueAsNumber;
+    let workHours = document.getElementById('work-hours').valueAsNumber;
+    let loadTime = document.getElementById('load-time').valueAsNumber;
 
-    if (employeeCount < 0 || loavesPerEmployee < 0 || orderCount < 0) {
-        disabledCalculateButton.disabled = true;
-    } else {
-        disabledCalculateButton.disabled = false;
-    }
+    let hasError = employeeCount < 0 || loavesPerEmployee < 0 || 
+                  orderCount < 0 || workHours < 0 || loadTime <= 0;
+    
+    calculateButton.disabled = hasError;
+}
+
+// Pridėti event listenerius visiems įvesties laukams
+document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('input', validateInput);
 });
+
+// Pradinis patikrinimas
+checkAllInputs();
 
